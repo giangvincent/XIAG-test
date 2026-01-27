@@ -7,13 +7,19 @@ use App\Model;
 class DataStorage
 {
     /**
-     * @var \PDO 
+     * @var \PDO
      */
-    public $pdo;
+    private $pdo;
 
-    public function __construct()
+    // [Review] Excellent: Dependency Injection used here. This makes the class testable.
+    // [Architecture] Dependency Injection (DI)
+    // Instead of creating the connection inside the class (Tight Coupling), we ask for it in the constructor (Inversion of Control).
+    // This allows us to:
+    // 1. Swap the database connection for a Mock object during Unit Testing.
+    // 2. Configure the connection centrally in the Application bootstrap, rather than scattered across classes.
+    public function __construct(\PDO $pdo)
     {
-        $this->pdo = new \PDO('mysql:dbname=task_tracker;host=127.0.0.1', 'user');
+        $this->pdo = $pdo;
     }
 
     /**
@@ -22,7 +28,8 @@ class DataStorage
      */
     public function getProjectById($projectId)
     {
-        $stmt = $this->pdo->query('SELECT * FROM project WHERE id = ' . (int) $projectId);
+        $stmt = $this->pdo->prepare('SELECT * FROM project WHERE id = :id');
+        $stmt->execute(['id' => $projectId]);
 
         if ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return new Model\Project($row);
@@ -32,17 +39,24 @@ class DataStorage
     }
 
     /**
-     * @param int $project_id
+     * @param int $projectId
      * @param int $limit
      * @param int $offset
      */
-    public function getTasksByProjectId(int $project_id, $limit, $offset)
+    public function getTasksByProjectId(int $projectId, int $limit, int $offset)
     {
-        $stmt = $this->pdo->query("SELECT * FROM task WHERE project_id = $project_id LIMIT ?, ?");
-        $stmt->execute([$limit, $offset]);
+        // Ensure limit and offset are integers to prevent SQL issues in older versions,
+        // though execute params are safer.
+        $stmt = $this->pdo->prepare("SELECT * FROM task WHERE project_id = :project_id LIMIT :limit OFFSET :offset");
+
+        // PDO limit/offset binding can be tricky with string emulation, binding explicitly as INT.
+        $stmt->bindValue(':project_id', $projectId, \PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
 
         $tasks = [];
-        foreach ($stmt->fetchAll() as $row) {
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
             $tasks[] = new Model\Task($row);
         }
 
@@ -54,17 +68,28 @@ class DataStorage
      * @param int $projectId
      * @return Model\Task
      */
-    public function createTask(array $data, $projectId)
+    public function createTask(array $data, int $projectId)
     {
+        // [Security] SQL Injection Prevention
+        // We must never concatenate variables directly into the query string.
+        // Using Prepared Statements with placeholders (e.g., :title) ensures the database treats input as data, not executable code.
         $data['project_id'] = $projectId;
 
-        $fields = implode(',', array_keys($data));
-        $values = implode(',', array_map(function ($v) {
-            return is_string($v) ? '"' . $v . '"' : $v;
-        }, $data));
+        // Dynamic insert with prepared statements
+        $columns = array_keys($data);
+        $placeholders = array_map(fn($col) => ":$col", $columns);
 
-        $this->pdo->query("INSERT INTO task ($fields) VALUES ($values)");
-        $data['id'] = $this->pdo->query('SELECT MAX(id) FROM task')->fetchColumn();
+        $sql = sprintf(
+            "INSERT INTO task (%s) VALUES (%s)",
+            implode(', ', $columns),
+            implode(', ', $placeholders)
+        );
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($data);
+
+        // Fetch the last inserted ID safely
+        $data['id'] = $this->pdo->lastInsertId();
 
         return new Model\Task($data);
     }

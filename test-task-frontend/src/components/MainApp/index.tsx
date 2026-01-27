@@ -1,90 +1,84 @@
-import React from 'react';
-import { Form } from 'react-bootstrap';
-import { InputNewTodo } from '../InputNewTodo';
-import UserSelect from '../UserSelect';
-import { connect } from 'react-redux';
-import styles from './MainApp.module.css';
-
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import { InputNewTodo } from "../InputNewTodo";
+import UserSelect from "../UserSelect";
+import { useDispatch, useSelector } from "react-redux";
+import styles from "./MainApp.module.css";
 
 type Todo = {
-    title: string,
-    user?: number,
-    isDone: boolean,
-}
-
-type MainAppProps = {
-    todos: Todo[],
-    addTodo: (t: Todo) => void,
-    changeTodo: (todos: Todo[]) => void,
-}
-type MainAppState = {
-    todoTitle: string
+  title: string;
+  user?: number;
+  isDone: boolean;
 };
 
-class Index extends React.Component<MainAppProps, MainAppState> {
-    constructor(props: MainAppProps) {
-        super(props);
-        this.state = { todoTitle: '' }
-    }
-    handleTodoTitle = (todoTitle: string) => {
-        this.setState({ todoTitle })
-    }
+const MainApp = () => {
+  // [Architecture] Modern React: Functional Components & Hooks
+  // We replaced the Class component with a Functional component.
+  // Benefit 1: Hooks (useState, useSelector) allows us to group related logic together, rather than splitting it by lifecycle methods.
+  // Benefit 2: No more `this` binding confusion.
+  // Benefit 3: Better minification and performance optimization by the engine.
 
-    handleSubmitTodo = (todo: any) => {
-        this.props.addTodo(todo)
-    }
+  const [todoTitle, setTodoTitle] = useState("");
+  const dispatch = useDispatch();
 
-    render() {
-        const { todoTitle } = this.state;
-        window.allTodosIsDone = true;
+  // Select todos from Redux state
+  const todos = useSelector(
+    (state: { list: { todos: Todo[] } }) => state.list.todos,
+  );
 
-        this.props.todos.map(t => {
-            if (!t.isDone) {
-                window.allTodosIsDone = false
-            } else {
-                window.allTodosIsDone = true
-            }
-        });
+  const handleTodoTitle = (title: string) => {
+    setTodoTitle(title);
+  };
 
-        return (
-            <div>
-                <Form.Check type="checkbox" label="all todos is done!" checked={window.allTodosIsDone}/>
-                <hr/>
-                <InputNewTodo todoTitle={todoTitle} onChange={this.handleTodoTitle} onSubmit={this.handleSubmitTodo}/>
-                {this.props.todos.map((t, idx) => (
-                    <div className={styles.todo} >
-                        {t.title}
-                        <UserSelect user={t.user} idx={idx}/>
-                        <Form.Check
-                            style={{ marginTop: -8, marginLeft: 5 }}
-                            type="checkbox" checked={t.isDone} onChange={(e) => {
-                            const changedTodos = this.props.todos.map((t, index) => {
-                                const res = { ...t }
-                                if (index == idx) {
-                                    res.isDone = !t.isDone;
-                                }
-                                return res;
+  const handleSubmitTodo = (todo: Todo) => {
+    dispatch({ type: "ADD_TODO", payload: todo });
+  };
 
-                            })
-                            this.props.changeTodo(changedTodos)
+  const handleChangeTodo = (idx: number) => {
+    const changedTodos = todos.map((t, index) => {
+      if (index === idx) {
+        return { ...t, isDone: !t.isDone };
+      }
+      return t;
+    });
+    dispatch({ type: "CHANGE_TODOS", payload: changedTodos });
+  };
 
-                        }}
-                        />
-                    </div>
-                ))}
-            </div>
-        );
-    }
-}
+  // [Code Style] Derived State
+  // We act directly on the `todos` array to check completion.
+  // PREVIOUS ISSUE: The old code set a global variable `window.allTodosIsDone` inside the render loop.
+  // That was a "Side Effect" which made the render impure and unpredictable.
+  // FIXED: Pure calculation of derived state based on props/state.
+  const allTodosIsDone = todos.length > 0 && todos.every((t) => t.isDone);
 
-export default connect(
-    (state) => ({}),
-    (dispatch) => ({
-        addTodo: (todo: any) => {
-            dispatch({type: 'ADD_TODO', payload: todo});
-        },
-        changeTodo: (todos: any) => dispatch({type: 'CHANGE_TODOS', payload: todos}),
-        removeTodo: (index: number) => dispatch({type: 'REMOVE_TODOS', payload: index}),
-    })
+  return (
+    <div>
+      <Form.Check
+        type="checkbox"
+        label="all todos are done!"
+        checked={allTodosIsDone}
+        readOnly
+      />
+      <hr />
+      <InputNewTodo
+        todoTitle={todoTitle}
+        onChange={handleTodoTitle}
+        onSubmit={handleSubmitTodo}
+      />
+      {todos.map((t, idx) => (
+        <div key={idx} className={styles.todo}>
+          {t.title}
+          <UserSelect user={t.user} idx={idx} />
+          <Form.Check
+            style={{ marginTop: -8, marginLeft: 5 }}
+            type="checkbox"
+            checked={t.isDone}
+            onChange={() => handleChangeTodo(idx)}
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
 
-)(Index);
+export default MainApp;

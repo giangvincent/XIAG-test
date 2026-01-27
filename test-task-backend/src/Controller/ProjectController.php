@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Controller;
+namespace App\Controller;
 
 use App\Model;
 use App\Storage\DataStorage;
@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-class ProjectController 
+class ProjectController
 {
     /**
      * @var DataStorage
@@ -23,7 +23,7 @@ class ProjectController
 
     /**
      * @param Request $request
-     * 
+     *
      * @Route("/project/{id}", name="project", method="GET")
      */
     public function projectAction(Request $request)
@@ -31,11 +31,14 @@ class ProjectController
         try {
             $project = $this->storage->getProjectById($request->get('id'));
 
-            return new Response($project->toJson());
+            // [Architecture] Consistency in Response Handling
+            // We use `JsonResponse` instead of manually encoding JSON string with `Response`.
+            // This ensures improved consistency across the API and automatic header setting (Content-Type: application/json).
+            return new JsonResponse($project);
         } catch (Model\NotFoundException $e) {
-            return new Response('Not found', 404);
+            return new JsonResponse('Not found', 404);
         } catch (\Throwable $e) {
-            return new Response('Something went wrong', 500);
+            return new JsonResponse('Something went wrong', 500);
         }
     }
 
@@ -52,7 +55,7 @@ class ProjectController
             $request->get('offset')
         );
 
-        return new Response(json_encode($tasks));
+        return new JsonResponse($tasks);
     }
 
     /**
@@ -62,13 +65,16 @@ class ProjectController
      */
     public function projectCreateTaskAction(Request $request)
     {
-		$project = $this->storage->getProjectById($request->get('id'));
-		if (!$project) {
-			return new JsonResponse(['error' => 'Not found']);
-		}
-		
-		return new JsonResponse(
-			$this->storage->createTask($_REQUEST, $project->getId())
-		);
+        $project = $this->storage->getProjectById($request->get('id'));
+        if (!$project) {
+            return new JsonResponse(['error' => 'Not found'], 404);
+        }
+
+        // [Architecture] Encapsulation & Testability
+        // Using `$request->request->all()` instead of `$_REQUEST` decouples the code from global state.
+        // It allows mocking the Request object in tests and ensures we strictly use data intended for the request body.
+        return new JsonResponse(
+            $this->storage->createTask($request->request->all(), $project->getId())
+        );
     }
 }

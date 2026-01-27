@@ -5,9 +5,14 @@ export default configureStore({
         list: (state = {todos: []}, action) => {
             switch (action.type) {
                 case 'ADD_TODO': {
-                    const newState = state;
-                    newState.todos.push(action.payload);
-                    return newState;
+                    // [Architecture] Immutability Pattern
+                    // Redux rely on reference equality checks (oldState === newState) to determine if the UI needs to update.
+                    // If we mutate `state` directly (e.g. state.push), the reference is the same, so React won't re-render.
+                    // FIX: We return a NEW object with a NEW array, copying the old values.
+                    return {
+                        ...state,
+                        todos: [...state.todos, action.payload]
+                    };
                 }
                 case 'REMOVE_TODO': {
                     return {
@@ -17,6 +22,7 @@ export default configureStore({
                 }
                 case 'CHANGE_TODOS': {
                     return {
+                        ...state,
                         todos: action.payload,
                     };
                 }

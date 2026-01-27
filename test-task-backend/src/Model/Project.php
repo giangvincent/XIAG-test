@@ -2,13 +2,13 @@
 
 namespace App\Model;
 
-class Project
+class Project implements \JsonSerializable
 {
     /**
      * @var array
      */
     public $_data;
-    
+
     public function __construct($data)
     {
         $this->_data = $data;
@@ -28,5 +28,13 @@ class Project
     public function toJson()
     {
         return json_encode($this->_data);
+    }
+
+    /**
+     * @return array
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->_data;
     }
 }
