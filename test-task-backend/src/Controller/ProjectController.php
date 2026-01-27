@@ -29,7 +29,7 @@ class ProjectController
     public function projectAction(Request $request)
     {
         try {
-            $project = $this->storage->getProjectById($request->get('id'));
+            $project = $this->storage->getProjectById($request->attributes->get('id'));
 
             // [Architecture] Consistency in Response Handling
             // We use `JsonResponse` instead of manually encoding JSON string with `Response`.
@@ -50,9 +50,9 @@ class ProjectController
     public function projectTaskPagerAction(Request $request)
     {
         $tasks = $this->storage->getTasksByProjectId(
-            $request->get('id'),
-            $request->get('limit'),
-            $request->get('offset')
+            (int) $request->attributes->get('id'),
+            (int) $request->query->get('limit', 10),
+            (int) $request->query->get('offset', 0)
         );
 
         return new JsonResponse($tasks);
@@ -65,7 +65,7 @@ class ProjectController
      */
     public function projectCreateTaskAction(Request $request)
     {
-        $project = $this->storage->getProjectById($request->get('id'));
+        $project = $this->storage->getProjectById($request->attributes->get('id')); // Route param is in attributes
         if (!$project) {
             return new JsonResponse(['error' => 'Not found'], 404);
         }

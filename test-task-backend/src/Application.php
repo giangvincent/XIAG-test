@@ -12,10 +12,10 @@ class Application
 
         if (null === $storage) {
             // 1. Configuration (Environment variables allow changing config without touching code)
-            $dbHost = getenv('DB_HOST') ?: '127.0.0.1';
-            $dbName = getenv('DB_NAME') ?: 'task_tracker';
-            $dbUser = getenv('DB_USER') ?: 'user';
-            $dbPass = getenv('DB_PASS') ?: '';
+            $dbHost = getenv('DB_HOST') ?: 'ddev-test-task-backend-db:3306';
+            $dbName = getenv('DB_NAME') ?: 'db';
+            $dbUser = getenv('DB_USER') ?: 'db';
+            $dbPass = getenv('DB_PASS') ?: 'db';
 
             $pdo = new \PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
             $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
