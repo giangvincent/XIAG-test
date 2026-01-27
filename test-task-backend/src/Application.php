@@ -4,22 +4,24 @@ namespace App;
 
 class Application
 {
-    public function run()
+    public function run(\App\Storage\DataStorage $storage = null)
     {
         // [Architecture] Composition Root / Bootstrap
         // This is the entry point where we wire up our application's dependencies.
         // By instantiating objects here and passing them to each other, we achieve a flexible, decoupled architecture.
 
-        // 1. Configuration (Environment variables allow changing config without touching code)
-        $dbHost = getenv('DB_HOST') ?: '127.0.0.1';
-        $dbName = getenv('DB_NAME') ?: 'task_tracker';
-        $dbUser = getenv('DB_USER') ?: 'user';
-        $dbPass = getenv('DB_PASS') ?: '';
+        if (null === $storage) {
+            // 1. Configuration (Environment variables allow changing config without touching code)
+            $dbHost = getenv('DB_HOST') ?: '127.0.0.1';
+            $dbName = getenv('DB_NAME') ?: 'task_tracker';
+            $dbUser = getenv('DB_USER') ?: 'user';
+            $dbPass = getenv('DB_PASS') ?: '';
 
-        $pdo = new \PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $pdo = new \PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        $storage = new Storage\DataStorage($pdo);
+            $storage = new Storage\DataStorage($pdo);
+        }
 
         // Simple Router
         $controller = new Controller\ProjectController($storage);
