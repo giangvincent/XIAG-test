@@ -15,10 +15,11 @@ describe('Redux Store', () => {
         const state = store.getState();
         expect(state.list.todos).toHaveLength(1);
         expect(state.list.todos[0].title).toEqual('Test Todo');
+        expect(state.list.todos[0].id).toBeDefined();
     });
 
     it('should handle CHANGE_TODOS', () => {
-        const newTodos = [{ title: 'Updated', isDone: true }];
+        const newTodos = [{ id: '1', title: 'Updated', isDone: true }];
         store.dispatch({
             type: 'CHANGE_TODOS',
             payload: newTodos
@@ -34,8 +35,11 @@ describe('Redux Store', () => {
         store.dispatch({ type: 'ADD_TODO', payload: { title: 'Todo 1', isDone: false } });
         store.dispatch({ type: 'ADD_TODO', payload: { title: 'Todo 2', isDone: false } });
 
-        // Action: Remove the first todo (index 0)
-        store.dispatch({ type: 'REMOVE_TODO', payload: 0 });
+        const stateBefore = store.getState();
+        const idToRemove = stateBefore.list.todos[0].id;
+
+        // Action: Remove the first todo by ID
+        store.dispatch({ type: 'REMOVE_TODO', payload: idToRemove });
 
         const state = store.getState();
         expect(state.list.todos).toHaveLength(1);

@@ -40,9 +40,9 @@ const MainApp = () => {
     dispatch({ type: "ADD_TODO", payload: todo });
   };
 
-  const handleChangeTodo = (idx: number) => {
-    const changedTodos = todos.map((t, index) => {
-      if (index === idx) {
+  const handleChangeTodo = (id: string) => {
+    const changedTodos = todos.map((t) => {
+      if (t.id === id) {
         return { ...t, isDone: !t.isDone };
       }
       return t;
@@ -50,8 +50,18 @@ const MainApp = () => {
     dispatch({ type: "CHANGE_TODOS", payload: changedTodos });
   };
 
-  const handleRemoveTodo = (idx: number) => {
-    dispatch({ type: "REMOVE_TODO", payload: idx });
+  const handleUserChange = (id: string, userId: number) => {
+    const changedTodos = todos.map((t) => {
+      if (t.id === id) {
+        return { ...t, user: userId };
+      }
+      return t;
+    });
+    dispatch({ type: "CHANGE_TODOS", payload: changedTodos });
+  };
+
+  const handleRemoveTodo = (id: string) => {
+    dispatch({ type: "REMOVE_TODO", payload: id });
   };
 
   // [Code Style] Derived State
@@ -75,20 +85,24 @@ const MainApp = () => {
         onChange={handleTodoTitle}
         onSubmit={handleSubmitTodo}
       />
-      {todos.map((t, idx) => (
-        <div key={idx} className={styles.todo}>
+      {todos.map((t) => (
+        <div key={t.id} className={styles.todo}>
           {t.title}
-          <UserSelect user={t.user} idx={idx} users={users} />
+          <UserSelect
+            user={t.user}
+            users={users}
+            onChange={(userId) => handleUserChange(t.id, userId)}
+          />
           <Form.Check
             style={{ marginTop: -8, marginLeft: 5 }}
             type="checkbox"
             checked={t.isDone}
-            onChange={() => handleChangeTodo(idx)}
+            onChange={() => handleChangeTodo(t.id)}
           />
           <Button
             variant="danger"
             size="sm"
-            onClick={() => handleRemoveTodo(idx)}
+            onClick={() => handleRemoveTodo(t.id)}
             style={{ marginLeft: "10px" }}>
             Del
           </Button>

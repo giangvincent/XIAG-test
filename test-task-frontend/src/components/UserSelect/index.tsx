@@ -1,29 +1,16 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { memo } from "react";
 import styles from "./UserSelect.module.css";
-import { User, Todo } from "../../types";
+import { User } from "../../types";
 
 type UserSelectProps = {
   user?: number;
-  idx: number;
   users: User[];
+  onChange: (userId: number) => void;
 };
 
-function UserSelect({ user, idx, users }: UserSelectProps) {
-  const dispatch = useDispatch();
-  const todos = useSelector(
-    (state: { list: { todos: Todo[] } }) => state.list.todos,
-  );
-
+const UserSelect = ({ user, users, onChange }: UserSelectProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const changedTodos = todos.map((t, index) => {
-      const res = { ...t };
-      if (index === idx) {
-        res.user = parseInt(e.target.value, 10);
-      }
-      return res;
-    });
-    dispatch({ type: "CHANGE_TODOS", payload: changedTodos });
+    onChange(parseInt(e.target.value, 10));
   };
 
   return (
@@ -40,6 +27,6 @@ function UserSelect({ user, idx, users }: UserSelectProps) {
       ))}
     </select>
   );
-}
+};
 
-export default UserSelect;
+export default memo(UserSelect);

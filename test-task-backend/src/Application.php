@@ -23,30 +23,40 @@ class Application
             $storage = new Storage\DataStorage($pdo);
         }
 
-        // Simple Router
-        $controller = new Controller\ProjectController($storage);
+        // 2. Routing (Symfony Routing Component)
+        // We use our strict custom loader to read PHP 8 Attributes directly.
+        $loader = new \App\Routing\ReflectionRouteLoader();
+        $routes = $loader->load(Controller\ProjectController::class);
+
+        $context = new \Symfony\Component\Routing\RequestContext();
+        $context->fromRequest(\Symfony\Component\HttpFoundation\Request::createFromGlobals());
+
+        $matcher = new \Symfony\Component\Routing\Matcher\UrlMatcher($routes, $context);
 
         $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
-        $response = null;
 
-        $path = $request->getPathInfo();
-        if (preg_match('#^/project/(\d+)$#', $path, $matches) && $request->getMethod() === 'GET') {
-            $request->attributes->set('id', $matches[1]);
-            $response = $controller->projectAction($request);
-        } elseif (preg_match('#^/project/(\d+)/tasks$#', $path, $matches)) {
-            $request->attributes->set('id', $matches[1]);
-            if ($request->getMethod() === 'GET') {
-                $response = $controller->projectTaskPagerAction($request);
-            } elseif ($request->getMethod() === 'POST') {
-                $response = $controller->projectCreateTaskAction($request);
-            }
+        try {
+            // Match the request path to a route
+            $parameters = $matcher->match($request->getPathInfo());
+
+            // Add route parameters (slugs, ids) to the Request attributes
+            $request->attributes->add($parameters);
+
+            // Manual Dependency Injection for the Controller
+            // In a full framework, a Container would do this.
+            $controller = new Controller\ProjectController($storage);
+
+            // The '_controller' parameter contains [ClassName, MethodName] set by our Loader
+            $method = $parameters['_controller'][1];
+
+            // Execute
+            $response = $controller->$method($request);
+        } catch (\Symfony\Component\Routing\Exception\ResourceNotFoundException $e) {
+            $response = new \Symfony\Component\HttpFoundation\JsonResponse('Not Found', 404);
+        } catch (\Throwable $e) {
+            $response = new \Symfony\Component\HttpFoundation\JsonResponse('Internal Server Error: ' . $e->getMessage(), 500);
         }
 
-        if ($response) {
-            $response->send();
-        } else {
-            http_response_code(404);
-            echo "Not Found";
-        }
+        $response->send();
     }
 }

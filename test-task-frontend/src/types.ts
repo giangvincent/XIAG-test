@@ -4,6 +4,7 @@ export interface User {
 }
 
 export interface Todo {
+    id: string; // [FIX] Unique ID for React Keys
     title: string;
     user?: number;
     isDone: boolean;
