@@ -5,9 +5,10 @@ namespace App\Controller;
 use App\Model;
 use App\Storage\DataStorage;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
+// use Symfony\Component\HttpFoundation\Response; unused
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+// use Symfony\Component\Routing\Annotation\Route; deprecated
 
 class ProjectController
 {
@@ -23,9 +24,8 @@ class ProjectController
 
     /**
      * @param Request $request
-     *
-     * @Route("/project/{id}", name="project", method="GET")
      */
+    #[Route('/project/{id}', name: 'project', methods: ['GET'])]
     public function projectAction(Request $request)
     {
         try {
@@ -44,9 +44,8 @@ class ProjectController
 
     /**
      * @param Request $request
-     *
-     * @Route("/project/{id}/tasks", name="project-tasks", method="GET")
      */
+    #[Route('/project/{id}/tasks', name: 'project-tasks', methods: ['GET'])]
     public function projectTaskPagerAction(Request $request)
     {
         $tasks = $this->storage->getTasksByProjectId(
@@ -60,9 +59,8 @@ class ProjectController
 
     /**
      * @param Request $request
-     *
-     * @Route("/project/{id}/tasks", name="project-create-task", method="PUT")
      */
+    #[Route('/project/{id}/tasks', name: 'project-create-task', methods: ['PUT'])]
     public function projectCreateTaskAction(Request $request)
     {
         $project = $this->storage->getProjectById($request->attributes->get('id')); // Route param is in attributes

@@ -1,4 +1,4 @@
-# Deep Insight: Architectural & Code Evolution
+# Deep Insight
 
 This document details the critical architectural transformations applied to the codebase. The goal was not just to "fix bugs" but to elevate the system to modern engineering standards, focusing on **Security**, **Testability**, and **Predictability**.
 
@@ -52,3 +52,26 @@ This document details the critical architectural transformations applied to the 
   - _Insight 2:_ Mutation destroys "Time Travel" debugging capabilities.
 - **After:** We return a **New Object** (`{ ...state, todos: [...] }`).
   - _Insight:_ By creating a new reference, we signal strictly to React that "Data has changed". This ensures predictable updates and respects the functional programming principles Redux is built on.
+
+---
+
+## 🚀 Recent Modernization & Fixes
+
+### 1. Upgrade to React 18 (`createRoot`)
+
+- **Before:** Used `ReactDOM.render()`, which is deprecated in React 18 and runs in "legacy mode" (behaving like React 17).
+- **After:** Switched to `ReactDOM.createRoot()`.
+  - _Insight:_ This unlocks React 18's **Concurrent Features** (like automatic batching). It required updating the entry point `src/index.tsx` to use the new `react-dom/client` API.
+
+### 2. Backend Type Safety (Strict Typing)
+
+- **Before:** `ProjectController` passed `$_GET` parameters directly to `DataStorage`, often resulting in `null` values crashing strict-typed methods (e.g., `TypeError: Argument #2 must be of type int, null given`).
+- **After:** Inputs are strictly cast: `(int) $request->query->get('limit', 10)`.
+  - _Insight:_ We explicitly define **Default Values** at the controller level. This makes the API robust against malformed or missing inputs and prevents the "garbage in, crash out" problem.
+
+### 3. Modern Routing (PHP 8 Attributes)
+
+- **Before:** Route configuration relied on Docblock Annotations `/** @Route(...) */`.
+  - _Insight:_ Annotations are just comments; they require a separate parsing library (`doctrine/annotations`) to work at runtime, adding overhead and complexity.
+- **After:** Migrated to native **PHP 8 Attributes** `#[Route(...)]`.
+  - _Insight:_ Attributes are first-class citizens in PHP. They are performant, syntax-checked by the language itself, and don't require external hacks to function. This is the industry standard for modern PHP development.

@@ -6,40 +6,26 @@ import UserSelect from "./index";
 import "@testing-library/jest-dom"; // For toBeInTheDocument
 
 describe("UserSelect", () => {
-  beforeEach(() => {
-    // Mock fetch
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        json: () =>
-          Promise.resolve([
-            { id: 1, name: "User 1" },
-            { id: 2, name: "User 2" },
-          ]),
-      }),
-    ) as jest.Mock;
-  });
+  const mockUsers = [
+    { id: 1, name: "User 1" },
+    { id: 2, name: "User 2" },
+  ];
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it("renders select element", async () => {
+  it("renders select element", () => {
     render(
       <Provider store={store}>
-        <UserSelect idx={0} user={1} />
+        <UserSelect idx={0} user={1} users={mockUsers} />
       </Provider>,
     );
-    // Wait for fetch to populate options? Actually select element is always there.
     expect(screen.getByRole("combobox")).toBeInTheDocument();
   });
 
-  it("displays default option", async () => {
+  it("displays default option", () => {
     render(
       <Provider store={store}>
-        <UserSelect idx={0} user={1} />
+        <UserSelect idx={0} user={1} users={mockUsers} />
       </Provider>,
     );
-    // Use findByText to wait for async content appearance
-    expect(await screen.findByText("User 1")).toBeInTheDocument();
+    expect(screen.getByText("User 1")).toBeInTheDocument();
   });
 });

@@ -1,15 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import { InputNewTodo } from "../InputNewTodo";
 import UserSelect from "../UserSelect";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./MainApp.module.css";
-
-type Todo = {
-  title: string;
-  user?: number;
-  isDone: boolean;
-};
+import { Todo, User } from "../../types";
 
 const MainApp = () => {
   // [Architecture] Modern React: Functional Components & Hooks
@@ -19,7 +14,17 @@ const MainApp = () => {
   // Benefit 3: Better minification and performance optimization by the engine.
 
   const [todoTitle, setTodoTitle] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
   const dispatch = useDispatch();
+
+  // [Performance] Lifted State Up
+  // We fetch users HERE (once), instead of in every UserSelect component (N times).
+  // This solves the N+1 request problem.
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users/")
+      .then((resp) => resp.json())
+      .then((data) => setUsers(data));
+  }, []);
 
   // Select todos from Redux state
   const todos = useSelector(
@@ -68,7 +73,7 @@ const MainApp = () => {
       {todos.map((t, idx) => (
         <div key={idx} className={styles.todo}>
           {t.title}
-          <UserSelect user={t.user} idx={idx} />
+          <UserSelect user={t.user} idx={idx} users={users} />
           <Form.Check
             style={{ marginTop: -8, marginLeft: 5 }}
             type="checkbox"

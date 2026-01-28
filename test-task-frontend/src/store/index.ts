@@ -1,8 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
+import { Todo, TodoState } from '../types';
 
 export default configureStore({
     reducer: {
-        list: (state = {todos: []}, action) => {
+        list: (state: TodoState = {todos: []}, action: any) => {
             switch (action.type) {
                 case 'ADD_TODO': {
                     // [Architecture] Immutability Pattern
@@ -17,7 +18,7 @@ export default configureStore({
                 case 'REMOVE_TODO': {
                     return {
                         ...state,
-                        todos: state.todos.filter((t: any, index: number) => index !== action.payload),
+                        todos: state.todos.filter((t: Todo, index: number) => index !== action.payload),
                     };
                 }
                 case 'CHANGE_TODOS': {

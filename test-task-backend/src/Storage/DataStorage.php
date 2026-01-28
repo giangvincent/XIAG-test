@@ -11,7 +11,6 @@ class DataStorage
      */
     private $pdo;
 
-    // [Review] Excellent: Dependency Injection used here. This makes the class testable.
     // [Architecture] Dependency Injection (DI)
     // Instead of creating the connection inside the class (Tight Coupling), we ask for it in the constructor (Inversion of Control).
     // This allows us to:
