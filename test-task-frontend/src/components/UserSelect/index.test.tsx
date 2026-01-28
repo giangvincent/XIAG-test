@@ -14,7 +14,7 @@ describe("UserSelect", () => {
   it("renders select element", () => {
     render(
       <Provider store={store}>
-        <UserSelect idx={0} user={1} users={mockUsers} />
+        <UserSelect user={1} users={mockUsers} onChange={() => {}} />
       </Provider>,
     );
     expect(screen.getByRole("combobox")).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe("UserSelect", () => {
   it("displays default option", () => {
     render(
       <Provider store={store}>
-        <UserSelect idx={0} user={1} users={mockUsers} />
+        <UserSelect user={1} users={mockUsers} onChange={() => {}} />
       </Provider>,
     );
     expect(screen.getByText("User 1")).toBeInTheDocument();
