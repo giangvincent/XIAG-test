@@ -41,8 +41,8 @@ describe("InputNewTodo", () => {
     fireEvent.keyDown(input, {
       key: "Enter",
       code: "Enter",
-      keyCode: 13,
-      charCode: 13,
+      // keyCode: 13, // deprecated
+      // charCode: 13, // deprecated
     });
 
     // Assuming the component listens to onKeyDown and checks for Enter.

@@ -1,11 +1,11 @@
-import React from "react";
-import logo from "../../logo.svg";
+// import React from "react";
+// import logo from "../../logo.svg";
 import "./App.css";
 import MainApp from "../MainApp";
 
 function App() {
   return (
-    // туду лист для юзеров:
+    // TODO list for users:
     <div className="App main">
       <header className="App-header">
         TODO list with users:

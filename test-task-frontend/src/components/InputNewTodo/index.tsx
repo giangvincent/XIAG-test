@@ -32,7 +32,7 @@ export const InputNewTodo = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.keyCode !== 13) {
+    if (event.key !== "Enter") {
       return;
     }
 

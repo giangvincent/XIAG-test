@@ -23,7 +23,7 @@ function UserSelect({ user, idx, users }: UserSelectProps) {
       }
       return res;
     });
-    dispatch({ type: "CHANGE_TODO", payload: changedTodos });
+    dispatch({ type: "CHANGE_TODOS", payload: changedTodos });
   };
 
   return (

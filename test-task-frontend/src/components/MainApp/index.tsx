@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Form } from "react-bootstrap";
+// import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { Form, Button } from "react-bootstrap";
 import { InputNewTodo } from "../InputNewTodo";
 import UserSelect from "../UserSelect";
 import { useDispatch, useSelector } from "react-redux";
@@ -49,6 +50,10 @@ const MainApp = () => {
     dispatch({ type: "CHANGE_TODOS", payload: changedTodos });
   };
 
+  const handleRemoveTodo = (idx: number) => {
+    dispatch({ type: "REMOVE_TODO", payload: idx });
+  };
+
   // [Code Style] Derived State
   // We act directly on the `todos` array to check completion.
   // PREVIOUS ISSUE: The old code set a global variable `window.allTodosIsDone` inside the render loop.
@@ -80,6 +85,13 @@ const MainApp = () => {
             checked={t.isDone}
             onChange={() => handleChangeTodo(idx)}
           />
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => handleRemoveTodo(idx)}
+            style={{ marginLeft: "10px" }}>
+            Del
+          </Button>
         </div>
       ))}
     </div>
